@@ -37,7 +37,8 @@ def draw_boids(boids, screen):
     red_fade = (255, 160, 153)
 
     for boid in boids:
-        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 1)
+        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 1.5)
+        # draw further away circles as smaller
 
 
 def sep(boid):
