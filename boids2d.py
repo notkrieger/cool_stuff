@@ -10,7 +10,7 @@ height = 480
 speed_max = 1
 local_r = 40 # distance for other boids to be in locality
 boids = []
-trail_len = 10
+trail_len = 15
 trails = np.zeros((trail_len, N, 2)) # trails - last X positions of boids
 sep_factor = 0.025
 cohesion_factor = 0.01
@@ -29,22 +29,30 @@ def distance(boid, other):
     return ((boid.x - other.x) ** 2 + (boid.y - other.y) ** 2) ** 0.5
 
 
-def draw_boids(boids, trails, screen):
+def draw_boids(boids, trails, screen, t):
     screen.fill((0, 0, 0))
     red = (255, 0, 0)
     radius = 4
     red_fade = (255, 160, 153)
 
-
-    for boid in boids:
-        pygame.draw.circle(screen, red, (boid.x, boid.y), radius)
+    # draw trail
     i = 0 # trail factor for drawing
     for timestep in trails:
         j = 0
         for boid in boids:
-            pygame.draw.circle(screen, red_fade, trails[i][j], radius * 0.5, )
+            order = (t - i) % trail_len
+            if order == 0:
+                #pygame.draw.circle(screen, red_fade, trails[0][j], radius)
+                continue
+            if j == 0:
+                print(order)
+            pygame.draw.circle(screen, red_fade, trails[i][j],
+                               radius * (trail_len - order)/trail_len)
             j += 1
-        i += 1
+        i -= 1
+
+    for boid in boids:
+        pygame.draw.circle(screen, red, (boid.x, boid.y), radius)
 
 
 def sep(boid):
@@ -126,7 +134,7 @@ def main():
 
     screen = pygame.display.set_mode((width, height))
 
-    draw_boids(boids, trails, screen)
+    draw_boids(boids, trails, screen, 0)
 
     for t in range(time_steps):
         j = 0
@@ -148,7 +156,7 @@ def main():
 
             j += 1
 
-        draw_boids(boids, trails, screen) # redraw the boids
+        draw_boids(boids, trails, screen, t) # redraw the boids
         # write the time step on the screen somewhere
         pygame.display.flip()
 
