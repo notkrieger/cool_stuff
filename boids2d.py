@@ -41,11 +41,6 @@ def draw_boids(boids, trails, screen, t):
         j = 0
         for boid in boids:
             order = (t - i) % trail_len
-            if order == 0:
-                #pygame.draw.circle(screen, red_fade, trails[0][j], radius)
-                continue
-            if j == 0:
-                print(order)
             pygame.draw.circle(screen, red_fade, trails[i][j],
                                radius * (trail_len - order)/trail_len)
             j += 1
