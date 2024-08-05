@@ -32,25 +32,25 @@ def distance(boid, other):
     return ((boid.x - other.x) ** 2 + (boid.y - other.y) ** 2 + (boid.z - other.z) ** 2) ** 0.5
 
 
-def draw_boids(boids, screen):
+def draw_boids(boids, screen, t):
     screen.fill((0, 0, 0))
     red = (255, 0, 0)
-    radius = 4
+    radius = 5
     red_fade = (255, 160, 153)
-
-
-    for boid in boids:
-        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 3)
-        # draw further away circles as smaller
 
     i = 0  # trail factor for drawing
     for timestep in trails:
         j = 0
         for boid in boids:
+            order = (t - i) % trail_len
             pygame.draw.circle(screen, red_fade, (trails[i][j][0], trails[i][j][1]),
-                               radius * (depth - trails[i][j][2])/depth + 1.5)
+                               radius * (trail_len - order) / trail_len * (depth - boid.z)/depth + 1)
             j += 1
         i += 1
+
+    for boid in boids:
+        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 1.5)
+        # draw further away circles as smaller
 
 
 def sep(boid):
@@ -145,7 +145,7 @@ def main():
 
     screen = pygame.display.set_mode((width, height))
 
-    draw_boids(boids, screen)
+    draw_boids(boids, screen, 0)
 
     for t in range(time_steps):
         j = 0
@@ -171,7 +171,7 @@ def main():
 
             j += 1
 
-        draw_boids(boids, screen) # redraw the boids
+        draw_boids(boids, screen, t) # redraw the boids
         # write the time step on the screen somewhere
         pygame.display.flip()
 
