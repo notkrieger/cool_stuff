@@ -14,6 +14,8 @@ boids = []
 sep_factor = 0.025
 cohesion_factor = 0.01
 align_factor = 0.1
+trail_len = 10
+trails = np.zeros((trail_len, N, 3)) # trails - last X positions of boids
 
 
 class Boid:
@@ -36,9 +38,19 @@ def draw_boids(boids, screen):
     radius = 4
     red_fade = (255, 160, 153)
 
+
     for boid in boids:
-        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 1.5)
+        pygame.draw.circle(screen, red, (boid.x, boid.y), radius * (depth - boid.z)/depth + 3)
         # draw further away circles as smaller
+
+    i = 0  # trail factor for drawing
+    for timestep in trails:
+        j = 0
+        for boid in boids:
+            pygame.draw.circle(screen, red_fade, (trails[i][j][0], trails[i][j][1]),
+                               radius * (depth - trails[i][j][2])/depth + 1.5)
+            j += 1
+        i += 1
 
 
 def sep(boid):
@@ -147,6 +159,11 @@ def main():
             limit_speed(boid)
             # redirect boids away from edge of screen
             redirect(boid)
+            # works quickly and is easy but does not look great
+            # would need a queue to make look pretty
+            trails[t % trail_len][j][0] = boid.x
+            trails[t % trail_len][j][1] = boid.y
+            trails[t % trail_len][j][2] = boid.z
             # update position
             boid.x += boid.vx
             boid.y += boid.vy
