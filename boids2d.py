@@ -15,6 +15,7 @@ trails = np.zeros((trail_len, N, 2)) # trails - last X positions of boids
 sep_factor = 0.025
 cohesion_factor = 0.01
 align_factor = 0.1
+wind_factor = 0.1
 
 
 class Boid:
@@ -122,6 +123,27 @@ def redirect(boid): # make boid avoid htting edges of screen
         boid.vy -= turn
 
 
+def wind(boid, t):
+    u = (boid.y + height/2)/height * np.sin(boid.y*t/30) * wind_factor
+    v = (-boid.x + width/2)/width * np.cos(boid.x*t/30) * wind_factor
+    boid.vx += u
+    boid.vy += v
+
+
+def draw_wind(screen, t):
+    t1 = t // 7 # to make wind visible on the screen
+    white = (255, 255, 255)
+    x_points = np.linspace(1, width, 30)
+    y_points = np.linspace(1, height, 20)
+    for x in x_points:
+        for y in y_points:
+            u = (y + height / 2) / height * np.sin(y * t1 / 100) * wind_factor
+            v = (x + width / 2) / width * np.cos(x * t1 / 100) * wind_factor
+            norm = (u**2 + v**2)**0.5 / 10
+            pygame.draw.line(screen, white, (x, y), (x+u/norm, y+v/norm))
+            pygame.draw.circle(screen, white, (x, y), 2)
+
+
 def main():
     for i in range(N):
         # maybe some meshgrid to make N x N grid??
@@ -141,6 +163,7 @@ def main():
             cohesion(boid)
             sep(boid)
             limit_speed(boid)
+            wind(boid, t)
             # redirect boids away from edge of screen
             redirect(boid)
             trails[int(t % trail_len)][j][0] = boid.x
@@ -152,6 +175,7 @@ def main():
             j += 1
 
         draw_boids(boids, trails, screen, t) # redraw the boids
+        draw_wind(screen, t)
         # write the time step on the screen somewhere
         pygame.display.flip()
 
