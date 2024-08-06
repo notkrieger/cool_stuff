@@ -53,52 +53,35 @@ def draw_boids(boids, trails, screen, t):
         pygame.draw.circle(screen, red, (boid.x, boid.y), radius)
 
 
-def sep(boid):
-    # avoid other boids
-    sep_dir = [0, 0]
+def update_v(boid):
+
+    sep_dir = [0, 0] # avoid other boids
+    ave_align = [0, 0] # align with nearby boids
+    centre = [0, 0] # go toward centre of pack
+    num_neighbours = 0
 
     for other in boids:
         r = distance(boid, other)
         if r > local_r or other == boid:
             continue
-        sep_dir[0] += (local_r / (boid.x - other.x)) # should hopefully make it so close --> more "push"
+        num_neighbours += 1
+        sep_dir[0] += (local_r / (boid.x - other.x))  # should hopefully make it so close --> more "push"
         sep_dir[1] += (local_r / (boid.y - other.y))
+        centre[0] += other.x
+        centre[1] += other.y
+        ave_align[0] += other.vx
+        ave_align[1] += other.vy  # calculate average alignment
 
+    # separate
     boid.vx += sep_dir[0] * sep_factor
     boid.vy += sep_dir[1] * sep_factor
-
-
-def cohesion(boid):
-    # go towards centre of pack
-    centre = [0, 0]
-    num_neighbours = 0
-    for other in boids:
-        r = distance(boid, other)
-        if r < local_r:
-            centre[0] += other.x
-            centre[1] += other.y
-            num_neighbours += 1
-
-
     if num_neighbours > 0:
+        # centre
         centre[0] /= num_neighbours
         centre[1] /= num_neighbours
         boid.vx += (centre[0] - boid.x) * cohesion_factor
         boid.vy += (centre[1] - boid.y) * cohesion_factor
-
-
-def align(boid):
-    ave_align = [0, 0]
-    num_neighbours = 0
-    for other in boids:
-        r = distance(boid, other)
-        if r > local_r:
-            continue
-        num_neighbours += 1
-        ave_align[0] += other.vx
-        ave_align[1] += other.vy # calculate average alignment
-
-    if num_neighbours > 0:
+        # align
         ave_align[0] /= num_neighbours
         ave_align[1] /= num_neighbours
         boid.vx += (ave_align[0] - boid.vx) * align_factor
@@ -129,6 +112,7 @@ def wind_uv(x, y, t):
     u = (y + height / 2) / height * np.sin(y * t / wind_sin) * wind_factor
     v = (x + width / 2) / width * np.cos(x * t / wind_sin) * wind_factor
     return u, v
+
 
 def wind(boid, t):
     t1 = t // wind_period
@@ -165,9 +149,7 @@ def main():
             # separation - steer to avoid crowding local flockmates
             # alignment - steer towards average heading of flockmates
             # cohesion - steer towards centre of mass of local flockmates
-            align(boid)
-            cohesion(boid)
-            sep(boid)
+            update_v(boid)
             limit_speed(boid)
             wind(boid, t)
             # redirect boids away from edge of screen
