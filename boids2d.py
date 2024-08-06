@@ -15,7 +15,9 @@ trails = np.zeros((trail_len, N, 2)) # trails - last X positions of boids
 sep_factor = 0.025
 cohesion_factor = 0.01
 align_factor = 0.1
-wind_factor = 0.1
+wind_factor = 0.05
+wind_period = 7
+wind_sin = 700
 
 
 class Boid:
@@ -123,22 +125,26 @@ def redirect(boid): # make boid avoid htting edges of screen
         boid.vy -= turn
 
 
+def wind_uv(x, y, t):
+    u = (y + height / 2) / height * np.sin(y * t / wind_sin) * wind_factor
+    v = (x + width / 2) / width * np.cos(x * t / wind_sin) * wind_factor
+    return u, v
+
 def wind(boid, t):
-    u = (boid.y + height/2)/height * np.sin(boid.y*t/30) * wind_factor
-    v = (-boid.x + width/2)/width * np.cos(boid.x*t/30) * wind_factor
+    t1 = t // wind_period
+    u, v = wind_uv(boid.x, boid.y, t1)
     boid.vx += u
     boid.vy += v
 
 
 def draw_wind(screen, t):
-    t1 = t // 7 # to make wind visible on the screen
+    t1 = t // wind_period # to make wind visible on the screen
     white = (255, 255, 255)
     x_points = np.linspace(1, width, 30)
     y_points = np.linspace(1, height, 20)
     for x in x_points:
         for y in y_points:
-            u = (y + height / 2) / height * np.sin(y * t1 / 100) * wind_factor
-            v = (x + width / 2) / width * np.cos(x * t1 / 100) * wind_factor
+            u, v = wind_uv(x, y, t1)
             norm = (u**2 + v**2)**0.5 / 10
             pygame.draw.line(screen, white, (x, y), (x+u/norm, y+v/norm))
             pygame.draw.circle(screen, white, (x, y), 2)
